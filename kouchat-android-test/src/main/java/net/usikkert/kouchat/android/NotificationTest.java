@@ -27,7 +27,7 @@ import net.usikkert.kouchat.android.notification.NotificationService;
 import net.usikkert.kouchat.android.util.RobotiumTestUtils;
 import net.usikkert.kouchat.misc.User;
 import net.usikkert.kouchat.testclient.TestClient;
-import net.usikkert.kouchat.util.TestUtils;
+import net.usikkert.kouchat.testclient.TestUtils;
 
 import com.jayway.android.robotium.solo.Solo;
 
@@ -248,6 +248,7 @@ public class NotificationTest extends ActivityInstrumentationTestCase2<MainChatC
     public void test99Quit() {
         client.logoff();
         RobotiumTestUtils.quit(solo);
+        System.gc();
     }
 
     public void tearDown() {
@@ -260,12 +261,12 @@ public class NotificationTest extends ActivityInstrumentationTestCase2<MainChatC
 
     private void assertDefaultNotification() {
         assertEquals(R.string.notification_running, notificationService.getCurrentLatestInfoTextId());
-        assertEquals(R.drawable.kou_icon_24x24, notificationService.getCurrentIconId());
+        assertEquals(R.drawable.ic_stat_notify_default, notificationService.getCurrentIconId());
     }
 
     private void assertNewMessageNotification() {
         assertEquals(R.string.notification_new_message, notificationService.getCurrentLatestInfoTextId());
-        assertEquals(R.drawable.kou_icon_activity_24x24, notificationService.getCurrentIconId());
+        assertEquals(R.drawable.ic_stat_notify_activity, notificationService.getCurrentIconId());
     }
 
     private void openPrivateChat() {

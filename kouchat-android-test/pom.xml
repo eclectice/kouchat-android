@@ -8,7 +8,7 @@
   <parent>
     <artifactId>kouchat-android</artifactId>
     <groupId>net.usikkert.kouchat</groupId>
-    <version>0.9.0-SNAPSHOT</version>
+    <version>0.10.0-SNAPSHOT</version>
   </parent>
 
   <dependencies>
@@ -56,7 +56,6 @@
       <plugin>
         <groupId>com.jayway.maven.plugins.android.generation2</groupId>
         <artifactId>android-maven-plugin</artifactId>
-        <version>3.2.0</version>
         <configuration>
           <test>
             <classes>
