@@ -28,14 +28,12 @@ import static org.mockito.Mockito.*;
 import net.usikkert.kouchat.misc.User;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-
-import com.xtremelabs.robolectric.Robolectric;
-import com.xtremelabs.robolectric.RobolectricTestRunner;
+import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
 
 import android.content.Context;
 
@@ -63,8 +61,7 @@ public class UserListAdapterWithoutMeTest {
 
     @Test
     public void constructorShouldThrowExceptionIfContextIsNull() {
-        expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage("Context can not be null");
+        expectedException.expect(NullPointerException.class); // Happens in Android superclass
 
         new UserListAdapterWithoutMe(null, me);
     }
@@ -113,7 +110,6 @@ public class UserListAdapterWithoutMeTest {
     }
 
     @Test
-    @Ignore("This does not work with Robolectric yet.") // sort is not implemented in shadow
     public void getItemShouldIgnoreMeAfterSort() {
         final User penny = new User("Penny", 1);
         final User amy = new User("Amy", 2);

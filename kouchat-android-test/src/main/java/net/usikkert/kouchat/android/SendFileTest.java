@@ -49,6 +49,7 @@ import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.test.ActivityInstrumentationTestCase2;
+import android.widget.ListView;
 
 /**
  * Tests send file functionality. Requires at least one image in the gallery.
@@ -146,6 +147,8 @@ public class SendFileTest extends ActivityInstrumentationTestCase2<SendFileContr
         solo = new Solo(getInstrumentation(), activity);
         solo.sleep(1000);
 
+        final User me = RobotiumTestUtils.getMe(activity);
+
         albert.logon();
         solo.sleep(1000);
 
@@ -155,7 +158,6 @@ public class SendFileTest extends ActivityInstrumentationTestCase2<SendFileContr
         RobotiumTestUtils.launchMainChat(this);
         solo.sleep(1000);
 
-        final User me = RobotiumTestUtils.getMe(activity);
         final File newFile = createNewFile();
         assertFalse("Should not exist: " + newFile, newFile.exists());
 
@@ -176,6 +178,8 @@ public class SendFileTest extends ActivityInstrumentationTestCase2<SendFileContr
         solo = new Solo(getInstrumentation(), activity);
         solo.sleep(1000);
 
+        final User me = RobotiumTestUtils.getMe(activity);
+
         tina.logon();
         solo.sleep(1000);
 
@@ -184,8 +188,6 @@ public class SendFileTest extends ActivityInstrumentationTestCase2<SendFileContr
 
         RobotiumTestUtils.launchMainChat(this);
         solo.sleep(1000);
-
-        final User me = RobotiumTestUtils.getMe(activity);
 
         tina.rejectFile(me, image.getName());
         solo.sleep(2000);
@@ -292,7 +294,7 @@ public class SendFileTest extends ActivityInstrumentationTestCase2<SendFileContr
     }
 
     private void assertUsers(final String... users) {
-        assertEquals(users.length, solo.getCurrentListViews().get(0).getCount());
+        assertEquals(users.length, solo.getCurrentViews(ListView.class).get(0).getCount());
 
         if (users.length == 0) {
             assertTrue(RobotiumTestUtils.searchText(solo, "-- No connected users."));
@@ -305,7 +307,7 @@ public class SendFileTest extends ActivityInstrumentationTestCase2<SendFileContr
 
             for (int i = 0; i < users.length; i++) {
                 final String user = users[i];
-                assertEquals(user, solo.getCurrentListViews().get(0).getItemAtPosition(i).toString());
+                assertEquals(user, solo.getCurrentViews(ListView.class).get(0).getItemAtPosition(i).toString());
             }
         }
     }

@@ -31,6 +31,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.text.SpannableString;
 import android.text.util.Linkify;
+import android.view.ContextThemeWrapper;
 import android.widget.TextView;
 
 /**
@@ -49,17 +50,18 @@ public class AboutDialog {
      */
     public AboutDialog(final Context context) {
         Validate.notNull(context, "Context can not be null");
+        final Context wrappedContext = new ContextThemeWrapper(context, R.style.Theme_Default_Dialog);
 
-        final PackageInfo packageInfo = getPackageInfo(context);
+        final PackageInfo packageInfo = getPackageInfo(wrappedContext);
 
         final String appVersion = packageInfo.versionName;
-        final String appName = context.getString(R.string.app_name);
+        final String appName = wrappedContext.getString(R.string.app_name);
 
         final String aboutTitle = appName + " v" + appVersion;
-        final String aboutText = context.getString(R.string.about_text);
-        final TextView messageView = createMessageView(context, aboutText);
+        final String aboutText = wrappedContext.getString(R.string.about_text);
+        final TextView messageView = createMessageView(wrappedContext, aboutText);
 
-        buildDialog(context, aboutTitle, messageView);
+        buildDialog(wrappedContext, aboutTitle, messageView);
     }
 
     private void buildDialog(final Context context, final String aboutTitle, final TextView messageView) {
@@ -67,7 +69,7 @@ public class AboutDialog {
 
         builder.setTitle(aboutTitle);
         builder.setCancelable(true);
-        builder.setIcon(R.drawable.kou_icon_32x32);
+        builder.setIcon(R.drawable.ic_dialog);
         builder.setPositiveButton(context.getString(android.R.string.ok), null);
         builder.setView(messageView);
         builder.create();

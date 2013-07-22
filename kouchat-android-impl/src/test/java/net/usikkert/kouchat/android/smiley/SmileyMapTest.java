@@ -35,9 +35,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-
-import com.xtremelabs.robolectric.Robolectric;
-import com.xtremelabs.robolectric.RobolectricTestRunner;
+import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
 
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -116,19 +115,19 @@ public class SmileyMapTest {
 
     @Test
     public void getSmileyShouldSupportAllElevenSmileys() {
-        assertEquals(R.drawable.smiley_smile, smileyId(":)"));
-        assertEquals(R.drawable.smiley_sad, smileyId(":("));
-        assertEquals(R.drawable.smiley_tongue, smileyId(":p"));
-        assertEquals(R.drawable.smiley_teeth, smileyId(":D"));
+        assertEquals(R.drawable.ic_smiley_smile, smileyId(":)"));
+        assertEquals(R.drawable.ic_smiley_sad, smileyId(":("));
+        assertEquals(R.drawable.ic_smiley_tongue, smileyId(":p"));
+        assertEquals(R.drawable.ic_smiley_teeth, smileyId(":D"));
 
-        assertEquals(R.drawable.smiley_wink, smileyId(";)"));
-        assertEquals(R.drawable.smiley_omg, smileyId(":O"));
-        assertEquals(R.drawable.smiley_angry, smileyId(":@"));
-        assertEquals(R.drawable.smiley_confused, smileyId(":S"));
+        assertEquals(R.drawable.ic_smiley_wink, smileyId(";)"));
+        assertEquals(R.drawable.ic_smiley_omg, smileyId(":O"));
+        assertEquals(R.drawable.ic_smiley_angry, smileyId(":@"));
+        assertEquals(R.drawable.ic_smiley_confused, smileyId(":S"));
 
-        assertEquals(R.drawable.smiley_cry, smileyId(";("));
-        assertEquals(R.drawable.smiley_embarrassed, smileyId(":$"));
-        assertEquals(R.drawable.smiley_shade, smileyId("8)"));
+        assertEquals(R.drawable.ic_smiley_cry, smileyId(";("));
+        assertEquals(R.drawable.ic_smiley_embarrassed, smileyId(":$"));
+        assertEquals(R.drawable.ic_smiley_shade, smileyId("8)"));
     }
 
     @Test
@@ -136,11 +135,10 @@ public class SmileyMapTest {
     public void getSmileyShouldReturnDrawableWithCorrectBounds() {
         final Drawable smiley = smileyMap.getSmiley(":)");
 
-        assertEquals(new Rect(0, 0, 22, 22), smiley.getBounds());
-
+        assertEquals(new Rect(0, 0, 22, 22), smiley.getBounds()); // Returns Rect(0, 0 - 100, 100)
     }
 
     private int smileyId(final String code) {
-        return Robolectric.shadowOf(smileyMap.getSmiley(code)).getLoadedFromResourceId();
+        return Robolectric.shadowOf(smileyMap.getSmiley(code)).getCreatedFromResId();
     }
 }

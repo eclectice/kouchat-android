@@ -27,6 +27,10 @@ import net.usikkert.kouchat.android.R;
 import net.usikkert.kouchat.android.service.ChatService;
 import net.usikkert.kouchat.android.service.ChatServiceBinder;
 
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.SherlockPreferenceActivity;
+import com.actionbarsherlock.view.MenuItem;
+
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -35,15 +39,13 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
-import android.preference.PreferenceActivity;
-import android.view.Window;
 
 /**
  * Controller for changing the settings.
  *
  * @author Christian Ihle
  */
-public class SettingsController extends PreferenceActivity
+public class SettingsController extends SherlockPreferenceActivity
                                 implements Preference.OnPreferenceChangeListener,
                                            SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -51,9 +53,7 @@ public class SettingsController extends PreferenceActivity
     private ServiceConnection serviceConnection;
 
     public void onCreate(final Bundle savedInstanceState) {
-        requestWindowFeature(Window.FEATURE_LEFT_ICON);
         super.onCreate(savedInstanceState);
-        getWindow().setFeatureDrawableResource(Window.FEATURE_LEFT_ICON, R.drawable.kou_icon_16x16);
         addPreferencesFromResource(R.xml.settings);
 
         final String nickNameKey = getString(R.string.settings_key_nick_name);
@@ -65,6 +65,9 @@ public class SettingsController extends PreferenceActivity
         serviceConnection = createServiceConnection();
         final Intent chatServiceIntent = createChatServiceIntent();
         bindService(chatServiceIntent, serviceConnection, BIND_NOT_FOREGROUND);
+
+        final ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
     }
 
     /**
@@ -101,8 +104,27 @@ public class SettingsController extends PreferenceActivity
 
     @Override
     protected void onDestroy() {
-        unbindService(serviceConnection);
+        if (androidUserInterface != null) {
+            unbindService(serviceConnection);
+        }
+
+        androidUserInterface = null;
+
         super.onDestroy();
+    }
+
+    public boolean onOptionsItemSelected(final MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home: // Clicked on KouChat icon in the action bar
+                return goBackToMainChat();
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private boolean goBackToMainChat() {
+        startActivity(new Intent(this, MainChatController.class));
+        return true;
     }
 
     private void setValueAsSummary(final String key) {

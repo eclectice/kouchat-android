@@ -35,10 +35,12 @@ import net.usikkert.kouchat.util.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import com.xtremelabs.robolectric.RobolectricTestRunner;
+import org.robolectric.RobolectricTestRunner;
 
 import android.app.Notification;
+import android.app.NotificationManager;
+import android.content.Context;
+import android.net.wifi.WifiManager;
 import android.os.IBinder;
 
 /**
@@ -68,6 +70,8 @@ public class ChatServiceTest {
 
     @Test
     public void onCreateShouldSetClientProperty() {
+        mockSystemServices();
+
         chatService.onCreate();
 
         assertEquals("Android", System.getProperty(Constants.PROPERTY_CLIENT_UI));
@@ -75,6 +79,7 @@ public class ChatServiceTest {
 
     @Test
     public void omCreateShouldSetNickNameFromAndroidSettings() {
+        mockSystemServices();
         RobolectricTestUtils.setNickNameInTheAndroidSettingsTo("Kou");
 
         chatService.onCreate();
@@ -85,6 +90,8 @@ public class ChatServiceTest {
 
     @Test
     public void onCreateShouldCreateMulticastLockHandler() {
+        mockSystemServices();
+
         assertTrue(TestUtils.fieldValueIsNull(chatService, "multicastLockHandler"));
 
         chatService.onCreate();
@@ -168,5 +175,13 @@ public class ChatServiceTest {
         TestUtils.setFieldValue(chatService, "androidUserInterface", ui);
         TestUtils.setFieldValue(chatService, "notificationService", notificationService);
         TestUtils.setFieldValue(chatService, "multicastLockHandler", multicastLockHandler);
+    }
+
+    private void mockSystemServices() {
+        final Context context = mock(Context.class);
+        TestUtils.setFieldValue(chatService, "mBase", context); // In superclass android.content.ContextWrapper
+
+        doReturn(mock(NotificationManager.class)).when(context).getSystemService(Context.NOTIFICATION_SERVICE);
+        doReturn(mock(WifiManager.class)).when(context).getSystemService(Context.WIFI_SERVICE);
     }
 }

@@ -27,6 +27,7 @@ import static junit.framework.Assert.*;
 import java.util.ArrayList;
 
 import net.usikkert.kouchat.android.AndroidUserInterface;
+import net.usikkert.kouchat.android.R;
 import net.usikkert.kouchat.android.controller.MainChatController;
 import net.usikkert.kouchat.android.controller.PrivateChatController;
 import net.usikkert.kouchat.misc.User;
@@ -38,11 +39,13 @@ import android.app.Activity;
 import android.content.res.Configuration;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.os.Build;
 import android.test.ActivityInstrumentationTestCase2;
 import android.test.InstrumentationTestCase;
 import android.text.Layout;
 import android.text.TextPaint;
 import android.view.KeyEvent;
+import android.widget.ListView;
 import android.widget.TextView;
 
 /**
@@ -63,7 +66,7 @@ public final class RobotiumTestUtils {
      */
     public static void quit(final Solo solo) {
         goHome(solo);
-        solo.sendKey(Solo.MENU);
+        openMenu(solo);
         solo.clickOnText("Quit");
     }
 
@@ -76,6 +79,15 @@ public final class RobotiumTestUtils {
         solo.sleep(500);
         solo.goBackToActivity(MainChatController.class.getSimpleName());
         solo.sleep(500);
+    }
+
+    /**
+     * Opens the overflow menu in the action bar.
+     *
+     * @param solo The solo tester.
+     */
+    public static void openMenu(final Solo solo) {
+        solo.clickOnView(solo.getView(R.id.mainChatMenu));
     }
 
     /**
@@ -98,7 +110,7 @@ public final class RobotiumTestUtils {
      * @throws IllegalArgumentException If no textview was found with the given text.
      */
     public static TextView getTextViewWithText(final Solo solo, final String text) {
-        final ArrayList<TextView> currentTextViews = solo.getCurrentTextViews(null);
+        final ArrayList<TextView> currentTextViews = solo.getCurrentViews(TextView.class);
 
         for (final TextView currentTextView : currentTextViews) {
             if (currentTextView.getClass().equals(TextView.class) &&
@@ -210,6 +222,23 @@ public final class RobotiumTestUtils {
     }
 
     /**
+     * Clicks on the "up" button in the action bar. The up button is the icon with the left arrow.
+     *
+     * @param solo The solo tester.
+     */
+    public static void goUp(final Solo solo) {
+        // Native ActionBar in use.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            solo.clickOnView(solo.getView(android.R.id.home));
+        }
+
+        // Compatibility ActionBar from ActionBarSherlock in use.
+        else {
+            solo.clickOnView(solo.getView(R.id.abs__home));
+        }
+    }
+
+    /**
      * Switches the orientation between landscape and portrait.
      *
      * @param solo The solo tester.
@@ -251,14 +280,22 @@ public final class RobotiumTestUtils {
     }
 
     /**
+     * Goes to the settings in the menu.
+     *
+     * @param solo The solo tester.
+     */
+    public static void openSettings(final Solo solo) {
+        openMenu(solo);
+        solo.clickOnText("Settings");
+    }
+
+    /**
      * Goes to the settings in the menu, and selects the option to change the nick name.
      *
      * @param solo The solo tester.
      */
     public static void clickOnChangeNickNameInTheSettings(final Solo solo) {
-        // Go to the Settings menu item and choose to set nick name
-        solo.sendKey(Solo.MENU);
-        solo.clickOnText("Settings");
+        openSettings(solo);
         solo.clickOnText("Set nick name");
     }
 
@@ -326,7 +363,7 @@ public final class RobotiumTestUtils {
     public static void openPrivateChat(final Solo solo, final int numberOfUsers, final int userNumber,
                                        final String userName) {
         solo.sleep(500);
-        assertEquals(numberOfUsers, solo.getCurrentListViews().get(0).getCount());
+        assertEquals(numberOfUsers, solo.getCurrentViews(ListView.class).get(0).getCount());
         solo.clickInList(userNumber);
         solo.sleep(500);
 
