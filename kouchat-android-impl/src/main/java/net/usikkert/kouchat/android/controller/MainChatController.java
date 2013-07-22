@@ -30,7 +30,11 @@ import net.usikkert.kouchat.event.UserListListener;
 import net.usikkert.kouchat.misc.User;
 import net.usikkert.kouchat.misc.UserList;
 
-import android.app.Activity;
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
+
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -41,14 +45,11 @@ import android.os.IBinder;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 /**
@@ -74,13 +75,14 @@ import android.widget.TextView;
  *
  * @author Christian Ihle
  */
-public class MainChatController extends Activity implements UserListListener {
+public class MainChatController extends SherlockActivity implements UserListListener {
 
     private Intent chatServiceIntent;
     private ServiceConnection serviceConnection;
     private EditText mainChatInput;
     private ListView mainChatUserList;
     private TextView mainChatView;
+    private ScrollView mainChatScroll;
     private UserListAdapter userListAdapter;
 
     private AndroidUserInterface androidUserInterface;
@@ -93,18 +95,16 @@ public class MainChatController extends Activity implements UserListListener {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        requestWindowFeature(Window.FEATURE_LEFT_ICON);
         setContentView(R.layout.main_chat);
-        getWindow().setFeatureDrawableResource(Window.FEATURE_LEFT_ICON, R.drawable.kou_icon_16x16);
 
         mainChatInput = (EditText) findViewById(R.id.mainChatInput);
         mainChatUserList = (ListView) findViewById(R.id.mainChatUserList);
         mainChatView = (TextView) findViewById(R.id.mainChatView);
+        mainChatScroll = (ScrollView) findViewById(R.id.mainChatScroll);
 
         registerMainChatInputListener();
         registerMainChatTextListener();
         registerUserListClickListener();
-        ControllerUtils.makeTextViewScrollable(mainChatView);
         ControllerUtils.makeLinksClickable(mainChatView);
         setupMainChatUserList();
         openKeyboard();
@@ -139,7 +139,7 @@ public class MainChatController extends Activity implements UserListListener {
         mainChatInput.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(final View v, final int keyCode, final KeyEvent event) {
-                if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
+                if (event.getAction() == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_ENTER) {
                     sendMessage(mainChatInput.getText().toString());
                     mainChatInput.setText("");
 
@@ -174,8 +174,8 @@ public class MainChatController extends Activity implements UserListListener {
     private void registerUserListClickListener() {
         mainChatUserList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(final AdapterView<?> userList, final View view, final int position, final long id) {
-                final User selectedUser = (User) userList.getItemAtPosition(position);
+            public void onItemClick(final AdapterView<?> userAdapter, final View view, final int position, final long id) {
+                final User selectedUser = (User) userAdapter.getItemAtPosition(position);
 
                 // No point in having a private chat with one self (at least not here)
                 if (selectedUser.isMe()) {
@@ -216,9 +216,14 @@ public class MainChatController extends Activity implements UserListListener {
 
     @Override
     protected void onDestroy() {
-        userList.removeUserListListener(this);
-        androidUserInterface.unregisterMainChatController();
-        unbindService(serviceConnection);
+        if (androidUserInterface != null) {
+            userList.removeUserListListener(this);
+            androidUserInterface.unregisterMainChatController();
+            unbindService(serviceConnection);
+        }
+
+        androidUserInterface = null;
+        userList = null;
 
         super.onDestroy();
     }
@@ -231,7 +236,7 @@ public class MainChatController extends Activity implements UserListListener {
      */
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
-        final MenuInflater inflater = getMenuInflater();
+        final MenuInflater inflater = getSupportMenuInflater();
         inflater.inflate(R.menu.main_chat_menu, menu);
 
         return true;
@@ -254,6 +259,27 @@ public class MainChatController extends Activity implements UserListListener {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    /**
+     * Makes sure regular key events from anywhere in the activity are sent to the input field,
+     * and giving it focus if it doesn't currently have focus.
+     *
+     * <p>Always asks the activity first, to make sure special keys are handled correctly, like the back button.</p>
+     *
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean dispatchKeyEvent(final KeyEvent event) {
+        if (super.dispatchKeyEvent(event)) {
+            return true;
+        }
+
+        if (!mainChatInput.hasFocus()) {
+            mainChatInput.requestFocus();
+        }
+
+        return mainChatInput.dispatchKeyEvent(event);
     }
 
     private boolean showAboutDialog() {
@@ -281,7 +307,7 @@ public class MainChatController extends Activity implements UserListListener {
         runOnUiThread(new Runnable() {
             public void run() {
                 mainChatView.append(message);
-                ControllerUtils.scrollTextViewToBottom(mainChatView);
+                ControllerUtils.scrollTextViewToBottom(mainChatView, mainChatScroll);
             }
         });
     }
@@ -299,7 +325,7 @@ public class MainChatController extends Activity implements UserListListener {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                ControllerUtils.scrollTextViewToBottom(mainChatView);
+                ControllerUtils.scrollTextViewToBottom(mainChatView, mainChatScroll);
             }
         }, ControllerUtils.ONE_SECOND);
 

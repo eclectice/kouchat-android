@@ -30,6 +30,8 @@ import net.usikkert.kouchat.testclient.TestClient;
 import com.jayway.android.robotium.solo.Solo;
 
 import android.test.ActivityInstrumentationTestCase2;
+import android.view.KeyEvent;
+import android.widget.EditText;
 
 /**
  * Test of private chat.
@@ -133,6 +135,71 @@ public class PrivateChatTest extends ActivityInstrumentationTestCase2<MainChatCo
 
         RobotiumTestUtils.switchOrientation(solo);
         solo.sleep(3000); // See if message number 30 is visible
+    }
+
+    public void test07InputFieldShouldAlwaysGetKeyEventsAndFocus() {
+        openPrivateChat();
+
+        // Starts with focus
+        final EditText privateChatInput = (EditText) solo.getView(R.id.privateChatInput);
+        assertTrue(privateChatInput.hasFocus());
+
+        // Keeps focus after "enter"
+        RobotiumTestUtils.writeLine(solo, "Keep me focused!");
+        solo.sleep(500);
+        assertTrue(privateChatInput.hasFocus());
+
+        // Need to support losing focus when clicking in the private chat to support text selection. Not happening on 2.3.3
+        solo.clickOnView(solo.getView(R.id.privateChatScroll));
+        solo.sleep(500);
+
+        // Let's enter a few key strokes when the input field lacks focus
+        solo.sendKey(KeyEvent.KEYCODE_A);
+        solo.sendKey(KeyEvent.KEYCODE_B);
+        solo.sendKey(KeyEvent.KEYCODE_C);
+
+        // The focus should now be back, and the keys entered should be in the input field
+        solo.sleep(500);
+        assertTrue(privateChatInput.hasFocus());
+        assertEquals("abc", privateChatInput.getText().toString());
+    }
+
+    // Must be verified manually. Not working on 2.3.3.
+    public void test08ShouldBeAbleToSelectText() {
+        openPrivateChat();
+        solo.sleep(500);
+
+        RobotiumTestUtils.writeLine(solo, "Lets select something");
+        solo.sleep(500);
+
+        solo.clickLongOnView(solo.getView(R.id.privateChatScroll));
+        solo.sleep(500);
+    }
+
+    public void test09BackButtonShouldGoBackToMainChat() {
+        openPrivateChat();
+        solo.sleep(500);
+
+        final MainChatController mainChat = getActivity();
+        assertFalse(mainChat.isVisible());
+
+        RobotiumTestUtils.goBack(solo);
+        solo.sleep(500);
+
+        assertTrue(mainChat.isVisible());
+    }
+
+    public void test10UpButtonShouldGoBackToMainChat() {
+        openPrivateChat();
+        solo.sleep(500);
+
+        final MainChatController mainChat = getActivity();
+        assertFalse(mainChat.isVisible());
+
+        RobotiumTestUtils.goUp(solo);
+        solo.sleep(500);
+
+        assertTrue(mainChat.isVisible());
     }
 
     public void test99Quit() {

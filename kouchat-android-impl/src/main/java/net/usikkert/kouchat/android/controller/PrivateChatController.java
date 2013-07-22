@@ -30,7 +30,10 @@ import net.usikkert.kouchat.android.service.ChatService;
 import net.usikkert.kouchat.android.service.ChatServiceBinder;
 import net.usikkert.kouchat.misc.User;
 
-import android.app.Activity;
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.MenuItem;
+
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -40,8 +43,8 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.Window;
 import android.widget.EditText;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 /**
@@ -49,10 +52,11 @@ import android.widget.TextView;
  *
  * @author Christian Ihle
  */
-public class PrivateChatController extends Activity {
+public class PrivateChatController extends SherlockActivity {
 
     private TextView privateChatView;
     private EditText privateChatInput;
+    private ScrollView privateChatScroll;
     private ServiceConnection serviceConnection;
 
     private AndroidUserInterface androidUserInterface;
@@ -66,18 +70,19 @@ public class PrivateChatController extends Activity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        requestWindowFeature(Window.FEATURE_LEFT_ICON);
         setContentView(R.layout.private_chat);
-        getWindow().setFeatureDrawableResource(Window.FEATURE_LEFT_ICON, R.drawable.kou_icon_16x16);
 
         privateChatInput = (EditText) findViewById(R.id.privateChatInput);
         privateChatView = (TextView) findViewById(R.id.privateChatView);
+        privateChatScroll = (ScrollView) findViewById(R.id.privateChatScroll);
 
         final Intent chatServiceIntent = createChatServiceIntent();
         serviceConnection = createServiceConnection();
         bindService(chatServiceIntent, serviceConnection, Context.BIND_NOT_FOREGROUND);
 
-        ControllerUtils.makeTextViewScrollable(privateChatView);
+        final ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
+
         ControllerUtils.makeLinksClickable(privateChatView);
         privateChatInput.requestFocus();
     }
@@ -86,9 +91,8 @@ public class PrivateChatController extends Activity {
     protected void onDestroy() {
         if (privateChatWindow != null) {
             privateChatWindow.unregisterPrivateChatController();
+            unbindService(serviceConnection);
         }
-
-        unbindService(serviceConnection);
 
         androidUserInterface = null;
         privateChatWindow = null;
@@ -116,6 +120,41 @@ public class PrivateChatController extends Activity {
         super.onPause();
     }
 
+    public boolean onOptionsItemSelected(final MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home: // Clicked on KouChat icon in the action bar
+                return goBackToMainChat();
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private boolean goBackToMainChat() {
+        startActivity(new Intent(this, MainChatController.class));
+        return true;
+    }
+
+    /**
+     * Makes sure regular key events from anywhere in the activity are sent to the input field,
+     * and giving it focus if it doesn't currently have focus.
+     *
+     * <p>Always asks the activity first, to make sure special keys are handled correctly, like the back button.</p>
+     *
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean dispatchKeyEvent(final KeyEvent event) {
+        if (super.dispatchKeyEvent(event)) {
+            return true;
+        }
+
+        if (!privateChatInput.hasFocus()) {
+            privateChatInput.requestFocus();
+        }
+
+        return privateChatInput.dispatchKeyEvent(event);
+    }
+
     private Intent createChatServiceIntent() {
         return new Intent(this, ChatService.class);
     }
@@ -139,7 +178,7 @@ public class PrivateChatController extends Activity {
         privateChatInput.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(final View v, final int keyCode, final KeyEvent event) {
-                if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
+                if (event.getAction() == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_ENTER) {
                     sendPrivateMessage(privateChatInput.getText().toString());
                     privateChatInput.setText("");
 
@@ -214,7 +253,7 @@ public class PrivateChatController extends Activity {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                ControllerUtils.scrollTextViewToBottom(privateChatView);
+                ControllerUtils.scrollTextViewToBottom(privateChatView, privateChatScroll);
             }
         }, ControllerUtils.ONE_SECOND);
     }
@@ -223,7 +262,7 @@ public class PrivateChatController extends Activity {
         runOnUiThread(new Runnable() {
             public void run() {
                 privateChatView.append(privateMessage);
-                ControllerUtils.scrollTextViewToBottom(privateChatView);
+                ControllerUtils.scrollTextViewToBottom(privateChatView, privateChatScroll);
             }
         });
     }

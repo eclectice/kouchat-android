@@ -25,8 +25,6 @@ package net.usikkert.kouchat.android.controller;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import java.util.List;
-
 import net.usikkert.kouchat.android.AndroidUserInterface;
 import net.usikkert.kouchat.android.service.ChatService;
 import net.usikkert.kouchat.android.service.ChatServiceBinder;
@@ -36,12 +34,11 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import com.xtremelabs.robolectric.Robolectric;
-import com.xtremelabs.robolectric.RobolectricTestRunner;
-import com.xtremelabs.robolectric.shadows.ShadowIntent;
-import com.xtremelabs.robolectric.shadows.ShadowPreferenceManager;
-import com.xtremelabs.robolectric.tester.android.content.TestSharedPreferences;
+import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.shadows.ShadowIntent;
+import org.robolectric.shadows.ShadowPreferenceManager;
+import org.robolectric.tester.android.content.TestSharedPreferences;
 
 import android.content.ServiceConnection;
 
@@ -56,6 +53,7 @@ public class SettingsControllerTest {
     private SettingsController controller;
 
     private AndroidUserInterface ui;
+    private ServiceConnection serviceConnection;
 
     @Before
     public void setUp() {
@@ -66,6 +64,8 @@ public class SettingsControllerTest {
         final ChatServiceBinder serviceBinder = mock(ChatServiceBinder.class);
         when(serviceBinder.getAndroidUserInterface()).thenReturn(ui);
         Robolectric.getShadowApplication().setComponentNameAndServiceForBindService(null, serviceBinder);
+
+        serviceConnection = mock(ServiceConnection.class);
     }
 
     @Test
@@ -109,15 +109,27 @@ public class SettingsControllerTest {
     }
 
     @Test
-    @Ignore("This does not work with Robolectric yet.")
-    public void onDestroyShouldUnBindChatService() {
+    public void onDestroyShouldUnregister() {
+        setupMocks();
+
         controller.onDestroy();
 
-        final List<ServiceConnection> unboundServiceConnections =
-                Robolectric.getShadowApplication().getUnboundServiceConnections();
+        assertEquals(1, Robolectric.getShadowApplication().getUnboundServiceConnections().size());
+        assertTrue(TestUtils.fieldValueIsNull(controller, "androidUserInterface"));
+    }
 
-        // ShadowApplication.unbindService is not in use, so this will always return 0
-        assertEquals(1, unboundServiceConnections.size());
+    @Test
+    public void onDestroyShouldNotFailIfServiceHasNotBeenBound() {
+        assertTrue(TestUtils.fieldValueIsNull(controller, "androidUserInterface"));
+
+        controller.onDestroy();
+
+        assertEquals(0, Robolectric.getShadowApplication().getUnboundServiceConnections().size());
+    }
+
+    private void setupMocks() {
+        TestUtils.setFieldValue(controller, "androidUserInterface", ui);
+        TestUtils.setFieldValue(controller, "serviceConnection", serviceConnection);
     }
 
     private TestSharedPreferences getTestSharedPreferences() {

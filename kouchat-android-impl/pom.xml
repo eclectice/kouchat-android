@@ -56,6 +56,12 @@
     </dependency>
 
     <dependency>
+      <groupId>com.actionbarsherlock</groupId>
+      <artifactId>actionbarsherlock</artifactId>
+      <type>apklib</type>
+    </dependency>
+
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
@@ -66,7 +72,7 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.pivotallabs</groupId>
+      <groupId>org.robolectric</groupId>
       <artifactId>robolectric</artifactId>
       <scope>test</scope>
     </dependency>

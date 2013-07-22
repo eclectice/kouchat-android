@@ -24,17 +24,15 @@ package net.usikkert.kouchat.android;
 
 import static org.junit.Assert.*;
 
-import net.usikkert.kouchat.android.controller.MainChatController;
-
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
 
-import com.xtremelabs.robolectric.RobolectricTestRunner;
-
+import android.graphics.drawable.Drawable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.ImageSpan;
@@ -55,7 +53,7 @@ public class MessageStylerWithHistoryTest {
 
     @Before
     public void setUp() {
-        messageStyler = new MessageStylerWithHistory(new MainChatController());
+        messageStyler = new MessageStylerWithHistory(Robolectric.application);
     }
 
     @Test
@@ -83,7 +81,6 @@ public class MessageStylerWithHistoryTest {
     }
 
     @Test
-    @Ignore("This does not work with Robolectric yet.")
     public void styleAndAppendShouldAddColor() {
         final CharSequence message = messageStyler.styleAndAppend("Color me!", 50);
 
@@ -91,7 +88,6 @@ public class MessageStylerWithHistoryTest {
     }
 
     @Test
-    @Ignore("This does not work with Robolectric yet.")
     public void getHistoryShouldRememberColor() {
         messageStyler.styleAndAppend("Color me!", 50);
 
@@ -99,7 +95,6 @@ public class MessageStylerWithHistoryTest {
     }
 
     @Test
-    @Ignore("This does not work with Robolectric yet.")
     public void styleAndAppendShouldAddLinks() {
         final CharSequence message = messageStyler.styleAndAppend("http://kouchat.googlecode.com/", 0);
 
@@ -107,7 +102,6 @@ public class MessageStylerWithHistoryTest {
     }
 
     @Test
-    @Ignore("This does not work with Robolectric yet.")
     public void getHistoryShouldRememberLinks() {
         messageStyler.styleAndAppend("http://kouchat.googlecode.com/", 0);
 
@@ -115,7 +109,6 @@ public class MessageStylerWithHistoryTest {
     }
 
     @Test
-    @Ignore("This does not work with Robolectric yet.")
     public void styleAndAppendShouldAddSmileys() {
         final CharSequence message = messageStyler.styleAndAppend(":)", 0);
 
@@ -123,7 +116,6 @@ public class MessageStylerWithHistoryTest {
     }
 
     @Test
-    @Ignore("This does not work with Robolectric yet.")
     public void getHistoryShouldRememberSmileys() {
         messageStyler.styleAndAppend(":)", 0);
 
@@ -152,5 +144,10 @@ public class MessageStylerWithHistoryTest {
         assertNotNull(spans);
         assertEquals(1, spans.length);
         assertEquals(":)", spans[0].getSource());
+        assertEquals(R.drawable.ic_smiley_smile, smileyId(spans[0].getDrawable()));
+    }
+
+    private int smileyId(final Drawable drawable) {
+        return Robolectric.shadowOf(drawable).getCreatedFromResId();
     }
 }
